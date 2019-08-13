@@ -66,7 +66,7 @@ class StatFragment : Fragment() {
         val adapter = StatisticsAdapter()
         stat_data_rv.layoutManager = LinearLayoutManager(activity!!.applicationContext)
         stat_data_rv.adapter = adapter
-        val defaultData = listOf<StatList>(
+        val defaultData = listOf(
             StatDescr(getString(R.string.stat_txt_rank)),
             StatData(
                 getString(R.string.rankPoints),

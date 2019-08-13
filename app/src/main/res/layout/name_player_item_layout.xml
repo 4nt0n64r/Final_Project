@@ -14,7 +14,7 @@
               style="@style/Base.TextAppearance.AppCompat.Title"
               android:textColor="@color/colorAccent"
               android:alpha="0.7"
-              android:id="@+id/name"
+              android:id="@+id/item_name"
               android:layout_gravity="center"
               android:text="@string/item_txt_name"
               android:layout_height="wrap_content"

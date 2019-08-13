@@ -21,7 +21,7 @@ class MainActivity : AppCompatActivity() {
 
     }
 
-//    нужно обработать ситуацию с нажатым + просто так
+    //    нужно обработать ситуацию с нажатым + просто так
     fun addPlayer(name: String, id: String, doWeAddPlayer: Boolean) {
         if (doWeAddPlayer) {
             val currentFrag = ListPlayersFragment()
@@ -40,18 +40,19 @@ class MainActivity : AppCompatActivity() {
             setFragment(LIST_OF_PLAYERS)
     }
 
-    fun showPlayerStatistics(playerId: String, seasonId: String) {
-        val frag = StatFragment()
-        if (!playerId.equals("") and !seasonId.equals("")) {
+    fun showStatistics(name: String, id: String) {
+        val currentFrag = StatFragment()
+        if (!name.equals("") and !id.equals("")) {
             val bundle = Bundle()
-            bundle.putString(NAME, playerId)
-            bundle.putString(ID, seasonId)
-            frag.arguments = bundle
+            bundle.putString(NAME, name)
+            bundle.putString(ID, id)
+            currentFrag.arguments = bundle
         }
         supportFragmentManager
             .beginTransaction()
-            .replace(R.id.fragment, frag, "dummy")
+            .replace(R.id.fragment, currentFrag, "dummy")
             .commit()
+
     }
 
     fun setFragment(fragmentId: Int) {

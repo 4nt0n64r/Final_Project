@@ -15,9 +15,11 @@ interface SimplePlayerDAO {
     @Query("SELECT * FROM simple_players")
     fun getPlayersFromDB():List<SimplePlayer>
 
-//    @Query("DELETE FROM players WHERE name_field = :name")
-//    fun deleteByName(name: String)
+    @Query("DELETE FROM simple_players WHERE name_field = :name AND id_field = :id")
+    fun deletePlayer(name: String, id:String)
 
+    @Query("SELECT * FROM simple_players WHERE name_field = :name")
+    fun getPlayerByName(name: String):SimplePlayer
 }
 
 

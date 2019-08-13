@@ -1,6 +1,5 @@
 package com.example.final_project.Fragments
 
-import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -8,7 +7,8 @@ import android.view.View
 import android.view.View.INVISIBLE
 import android.view.View.VISIBLE
 import android.view.ViewGroup
-import android.widget.Toast
+import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.room.Room
@@ -17,13 +17,14 @@ import com.example.final_project.MainActivity.Companion.ADD_PLAYER
 import com.example.final_project.MainActivity.Companion.ID
 import com.example.final_project.MainActivity.Companion.NAME
 import com.example.final_project.MainActivity.Companion.PLAYER_ADDER
+import com.example.final_project.MainActivity.Companion.STATISTICS
 import com.example.final_project.PlayersAdapter
 import com.example.final_project.R
 import com.example.final_project.RecyclerItemClickListener
 import com.example.final_project.database.PlayersDB
 import com.example.final_project.database.players.SimplePlayer
+import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.listplayerfragment_layout.*
-import kotlinx.android.synthetic.main.name_player_item_layout.*
 import kotlinx.android.synthetic.main.name_player_item_layout.view.*
 import kotlinx.coroutines.*
 
@@ -51,7 +52,6 @@ class ListPlayersFragment : Fragment() {
 
         mainJob.start()
 
-        //create database
         createDatabase()
         initAdapter()
 
@@ -61,7 +61,7 @@ class ListPlayersFragment : Fragment() {
             name = bundle.getString(NAME)!!
             id = bundle.getString(ID)!!
             if (bundle.getBoolean(ADD_PLAYER)) {
-                cachePlayers()
+                cachePlayerAndUpdateList(name, id)
             }
         } else {
             getPlayersFromDatabase()
@@ -76,16 +76,27 @@ class ListPlayersFragment : Fragment() {
                 object : RecyclerItemClickListener.OnItemClickListener {
                     override fun onItemClick(view: View, position: Int) {
                         val mainActivity = this@ListPlayersFragment.activity as MainActivity
-                        mainActivity.showPlayerStatistics(view.name.text.toString(), id)
+                        //получить игрока из базы по нику
+                        //передать его данные через бандл
+                        val touchedPlayer = CoroutineScope(Dispatchers.Main + mainJob).async{
+                            withContext(Dispatchers.IO) {db.simplePlayerDAO().getPlayerByName(view!!.item_name.text.toString())}
+                        }
+                        CoroutineScope(Dispatchers.Main+mainJob).launch {
+                            log(touchedPlayer.await().toString())
+                            mainActivity.showStatistics(touchedPlayer.await().name,touchedPlayer.await().id)
+                        }
                     }
 
                     override fun onLongItemClick(view: View?, position: Int) {
-                        item_background.setCardBackgroundColor(Color.BLUE)
-                        Toast.makeText(
-                            this@ListPlayersFragment.activity,
-                            "Длинное нажатие",
-                            Toast.LENGTH_LONG
-                        ).show()
+                        view!!.item_background.setCardBackgroundColor(
+                            ContextCompat.getColor(
+                                context!!,
+                                R.color.colorAccent
+                            )
+                        )
+                        view!!.item_name.setTextColor(ContextCompat.getColor(context!!, R.color.colorPrimaryDark))
+                        fab_delPlayer.visibility = VISIBLE
+                        showSnackbar("Длинное нажатие отработало нормально")
                     }
                 })
         )
@@ -95,7 +106,9 @@ class ListPlayersFragment : Fragment() {
             mainActivity.setFragment(PLAYER_ADDER)
         }
 
-
+        fab_delPlayer.setOnClickListener {
+            showSnackbar("Удаление игрока пока не реализовано!")
+        }
     }
 
     override fun onDestroyView() {
@@ -109,7 +122,6 @@ class ListPlayersFragment : Fragment() {
         my_recycler_view.adapter = adapter
     }
 
-
     private fun createDatabase() {
         db = Room.databaseBuilder(context!!, PlayersDB::class.java, "playersDB").build()
         db.createDatabase(context!!)
@@ -117,15 +129,25 @@ class ListPlayersFragment : Fragment() {
 
     private fun getPlayersFromDatabase() = CoroutineScope(Dispatchers.Main + mainJob).launch {
         val playersFromDb = withContext(Dispatchers.IO) { db.simplePlayerDAO().getPlayersFromDB() }
-
+        log("$playersFromDb")
         updateListOfPlayers(playersFromDb)
-
     }
 
-    private fun cachePlayers() = CoroutineScope(Dispatchers.Main + mainJob).launch {
-        withContext(Dispatchers.IO) { cachePlayer(SimplePlayer(name, id)) }
+    private fun deletePlayerAndUpdateList(name: String, id: String) =
+        CoroutineScope(Dispatchers.Main + mainJob).launch {
+            withContext(Dispatchers.IO) { deletePlayerFromDB(SimplePlayer(name, id)) }
 
-        log("cached SUCCESS: ${SimplePlayer(name, id)}")
+            players.clear()
+
+            val playersFromDb =
+                withContext(Dispatchers.IO) { db.simplePlayerDAO().getPlayersFromDB() }
+
+            updateListOfPlayers(playersFromDb)
+        }
+
+    //выполняет кеширование игрока в базу и обновление списка на экране
+    private fun cachePlayerAndUpdateList(name: String, id: String) = CoroutineScope(Dispatchers.Main + mainJob).launch {
+        withContext(Dispatchers.IO) { writePlayerToDB(SimplePlayer(name, id)) }
 
         players.clear()
 
@@ -135,27 +157,39 @@ class ListPlayersFragment : Fragment() {
         updateListOfPlayers(playersFromDb)
     }
 
-    private fun cachePlayer(player: SimplePlayer) {
+    private fun deletePlayerFromDB(player: SimplePlayer) {
+        db.simplePlayerDAO().deletePlayer(player.name, player.id)
+        Log.d("DB", "deleted $player from DB")
+    }
+
+
+    //записывает игрока в базу и в лог
+    private fun writePlayerToDB(player: SimplePlayer) {
         db.simplePlayerDAO().addPlayerToDB(player)
         Log.d("DB", "Add $player to DB")
     }
 
-    fun updateListOfPlayers(playersFromDb:List<SimplePlayer>){
+    //принимает список игроков из базы, обновляет список в RV и показывает заглушку если список пуст
+    fun updateListOfPlayers(playersFromDb: List<SimplePlayer>) {
         players.addAll(playersFromDb)
         adapter.setData(players)
 
-        //если в базе нет - и не добавляли => сообщение нужно добавить
         if (players.isEmpty()) {
             layout_error_list.visibility = VISIBLE
         } else {
             layout_error_list.visibility = INVISIBLE
         }
     }
+
+    fun showSnackbar(msg: String) {
+        val snack = Snackbar.make(constr, msg, Snackbar.LENGTH_LONG)
+        val sv = snack.view
+        val tv = sv.findViewById<TextView>(R.id.snackbar_text)
+        tv.setTextColor(ContextCompat.getColor(context!!, R.color.colorAccent))
+        snack.show()
+    }
 }
 
+fun log(msg: String) = println(msg)
 
-
-
-
-fun log(msg: String) = println("[${Thread.currentThread().name}] $msg")
 

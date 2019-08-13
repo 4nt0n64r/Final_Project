@@ -25,13 +25,12 @@ class PlayersAdapter(private var players: List<SimplePlayer>) :
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         holder.playerName?.text = players[position].name
-
     }
 
     override fun getItemCount() = players.size
 
     class ViewHolder(itemView: View?) : RecyclerView.ViewHolder(itemView!!) {
-        val playerName:TextView? = itemView?.findViewById(R.id.name)
+        val playerName:TextView? = itemView?.findViewById(R.id.item_name)
     }
 }
 
