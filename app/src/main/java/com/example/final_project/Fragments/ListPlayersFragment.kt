@@ -1,5 +1,6 @@
 package com.example.final_project.Fragments
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -17,11 +18,10 @@ import com.example.final_project.MainActivity.Companion.ADD_PLAYER
 import com.example.final_project.MainActivity.Companion.ID
 import com.example.final_project.MainActivity.Companion.NAME
 import com.example.final_project.MainActivity.Companion.PLAYER_ADDER
-import com.example.final_project.MainActivity.Companion.STATISTICS
-import com.example.final_project.PlayersAdapter
+import com.example.final_project.adapters.PlayersAdapter
 import com.example.final_project.R
 import com.example.final_project.RecyclerItemClickListener
-import com.example.final_project.database.PlayersDB
+import com.example.final_project.database.DataStorage
 import com.example.final_project.database.players.SimplePlayer
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.listplayerfragment_layout.*
@@ -35,7 +35,7 @@ class ListPlayersFragment : Fragment() {
     private var name = ""
     private var id = ""
 
-    lateinit var db: PlayersDB
+    lateinit var db: DataStorage
     lateinit var adapter: PlayersAdapter
 
     private val mainJob = SupervisorJob()
@@ -79,7 +79,7 @@ class ListPlayersFragment : Fragment() {
                         //получить игрока из базы по нику
                         //передать его данные через бандл
                         val touchedPlayer = CoroutineScope(Dispatchers.Main + mainJob).async{
-                            withContext(Dispatchers.IO) {db.simplePlayerDAO().getPlayerByName(view!!.item_name.text.toString())}
+                            withContext(Dispatchers.IO) {db.daoFunctions().getPlayerByName(view.item_name.text.toString())}
                         }
                         CoroutineScope(Dispatchers.Main+mainJob).launch {
                             log(touchedPlayer.await().toString())
@@ -87,6 +87,7 @@ class ListPlayersFragment : Fragment() {
                         }
                     }
 
+                    @SuppressLint("RestrictedApi")//че он ругается?
                     override fun onLongItemClick(view: View?, position: Int) {
                         view!!.item_background.setCardBackgroundColor(
                             ContextCompat.getColor(
@@ -94,7 +95,7 @@ class ListPlayersFragment : Fragment() {
                                 R.color.colorAccent
                             )
                         )
-                        view!!.item_name.setTextColor(ContextCompat.getColor(context!!, R.color.colorPrimaryDark))
+                        view.item_name.setTextColor(ContextCompat.getColor(context!!, R.color.colorPrimaryDark))
                         fab_delPlayer.visibility = VISIBLE
                         showSnackbar("Длинное нажатие отработало нормально")
                     }
@@ -123,49 +124,58 @@ class ListPlayersFragment : Fragment() {
     }
 
     private fun createDatabase() {
-        db = Room.databaseBuilder(context!!, PlayersDB::class.java, "playersDB").build()
+        db = Room.databaseBuilder(context!!, DataStorage::class.java, "playersDB").build()
         db.createDatabase(context!!)
     }
 
     private fun getPlayersFromDatabase() = CoroutineScope(Dispatchers.Main + mainJob).launch {
-        val playersFromDb = withContext(Dispatchers.IO) { db.simplePlayerDAO().getPlayersFromDB() }
+        val playersFromDb = withContext(Dispatchers.IO) { db.daoFunctions().getPlayersFromDB() }
         log("$playersFromDb")
         updateListOfPlayers(playersFromDb)
     }
 
     private fun deletePlayerAndUpdateList(name: String, id: String) =
         CoroutineScope(Dispatchers.Main + mainJob).launch {
-            withContext(Dispatchers.IO) { deletePlayerFromDB(SimplePlayer(name, id)) }
+            withContext(Dispatchers.IO) { deletePlayerFromDB(
+                SimplePlayer(
+                    name,
+                    id
+                )
+            ) }
 
             players.clear()
 
             val playersFromDb =
-                withContext(Dispatchers.IO) { db.simplePlayerDAO().getPlayersFromDB() }
+                withContext(Dispatchers.IO) { db.daoFunctions().getPlayersFromDB() }
 
             updateListOfPlayers(playersFromDb)
         }
 
     //выполняет кеширование игрока в базу и обновление списка на экране
     private fun cachePlayerAndUpdateList(name: String, id: String) = CoroutineScope(Dispatchers.Main + mainJob).launch {
-        withContext(Dispatchers.IO) { writePlayerToDB(SimplePlayer(name, id)) }
+        withContext(Dispatchers.IO) { writePlayerToDB(
+            SimplePlayer(
+                name,
+                id
+            )
+        ) }
 
         players.clear()
 
         val playersFromDb =
-            withContext(Dispatchers.IO) { db.simplePlayerDAO().getPlayersFromDB() }
+            withContext(Dispatchers.IO) { db.daoFunctions().getPlayersFromDB() }
 
         updateListOfPlayers(playersFromDb)
     }
 
     private fun deletePlayerFromDB(player: SimplePlayer) {
-        db.simplePlayerDAO().deletePlayer(player.name, player.id)
+        db.daoFunctions().deletePlayer(player.name, player.id)
         Log.d("DB", "deleted $player from DB")
     }
 
-
     //записывает игрока в базу и в лог
     private fun writePlayerToDB(player: SimplePlayer) {
-        db.simplePlayerDAO().addPlayerToDB(player)
+        db.daoFunctions().addPlayerToDB(player)
         Log.d("DB", "Add $player to DB")
     }
 

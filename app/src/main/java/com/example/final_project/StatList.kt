@@ -4,11 +4,11 @@ interface StatList {
 
 }
 
-data class StatDescr(
+data class StatHeader(
     val text:String
 ):StatList{}
 
-class StatData(
+class StatPoints(
     val text:String,
     val points:String
 ):StatList{}

@@ -2,14 +2,15 @@ package com.example.final_project
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import androidx.room.Room
 import com.example.final_project.Fragments.AddPlayerFragment
 import com.example.final_project.Fragments.ComparisonFragment
 import com.example.final_project.Fragments.ListPlayersFragment
 import com.example.final_project.Fragments.StatFragment
+import com.example.final_project.database.DataStorage
 
 
 class MainActivity : AppCompatActivity() {
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -20,6 +21,7 @@ class MainActivity : AppCompatActivity() {
         setFragment(LIST_OF_PLAYERS)
 
     }
+
 
     //    нужно обработать ситуацию с нажатым + просто так
     fun addPlayer(name: String, id: String, doWeAddPlayer: Boolean) {
@@ -34,7 +36,7 @@ class MainActivity : AppCompatActivity() {
             }
             supportFragmentManager
                 .beginTransaction()
-                .replace(R.id.fragment, currentFrag, "dummy")
+                .replace(R.id.fragment, currentFrag, FRAGMENT_CHANGED)
                 .commit()
         } else
             setFragment(LIST_OF_PLAYERS)
@@ -50,7 +52,7 @@ class MainActivity : AppCompatActivity() {
         }
         supportFragmentManager
             .beginTransaction()
-            .replace(R.id.fragment, currentFrag, "dummy")
+            .replace(R.id.fragment, currentFrag, FRAGMENT_CHANGED)
             .commit()
 
     }
@@ -60,25 +62,25 @@ class MainActivity : AppCompatActivity() {
             LIST_OF_PLAYERS -> {
                 supportFragmentManager
                     .beginTransaction()
-                    .replace(R.id.fragment, ListPlayersFragment(), "dummy")
+                    .replace(R.id.fragment, ListPlayersFragment(), FRAGMENT_CHANGED)
                     .commit()
             }
             PLAYER_ADDER -> {
                 supportFragmentManager
                     .beginTransaction()
-                    .replace(R.id.fragment, AddPlayerFragment(), "dummy")
+                    .replace(R.id.fragment, AddPlayerFragment(), FRAGMENT_CHANGED)
                     .commit()
             }
             STATISTICS -> {
                 supportFragmentManager
                     .beginTransaction()
-                    .replace(R.id.fragment, StatFragment(), "dummy")
+                    .replace(R.id.fragment, StatFragment(), FRAGMENT_CHANGED)
                     .commit()
             }
             COMPARSION -> {
                 supportFragmentManager
                     .beginTransaction()
-                    .replace(R.id.fragment, ComparisonFragment(), "dummy")
+                    .replace(R.id.fragment, ComparisonFragment(), FRAGMENT_CHANGED)
                     .commit()
             }
 
@@ -91,6 +93,7 @@ class MainActivity : AppCompatActivity() {
         val STATISTICS = 3
         val COMPARSION = 4
 
+        val FRAGMENT_CHANGED = "fragment changed"
         val NAME = "NAME"
         val ID = "ID"
         val ADD_PLAYER = "ADD_PLAYER"

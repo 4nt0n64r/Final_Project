@@ -1,10 +1,10 @@
-package com.example.final_project.database.players
+package com.example.final_project.database.seasons
 
 import com.google.gson.annotations.SerializedName
 
 data class SeasonStatsData(
     @SerializedName("data")
-    val data:SeasonStatistic
+    val data: SeasonStatistic
 )
 
 data class SeasonStatistic(
@@ -20,7 +20,7 @@ data class StatAttributes(
 
 data class Gamemode(
     @SerializedName("duo")
-    val duo: Dannie ,
+    val duo: Dannie,
     @SerializedName("duo-fpp")
     val duo_fpp: Dannie,
     @SerializedName("solo")

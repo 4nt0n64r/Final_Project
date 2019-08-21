@@ -1,10 +1,14 @@
-package com.example.final_project
+package com.example.final_project.adapters
 
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.example.final_project.R
+import com.example.final_project.StatPoints
+import com.example.final_project.StatHeader
+import com.example.final_project.StatList
 import com.hannesdorfmann.adapterdelegates4.AbsListItemAdapterDelegate
 import com.hannesdorfmann.adapterdelegates4.ListDelegationAdapter
 
@@ -22,10 +26,10 @@ class StatisticsAdapter : ListDelegationAdapter<List<StatList>>() {
 }
 
 private class StatElemDelegate :
-    AbsListItemAdapterDelegate<StatData, StatList, StatElemDelegate.ViewHolder>() {
+    AbsListItemAdapterDelegate<StatPoints, StatList, StatElemDelegate.ViewHolder>() {
 
     override fun isForViewType(item: StatList, items: List<StatList>, position: Int): Boolean {
-        return item is StatData
+        return item is StatPoints
     }
 
     override fun onCreateViewHolder(parent: ViewGroup): ViewHolder {
@@ -38,7 +42,7 @@ private class StatElemDelegate :
         )
     }
 
-    override fun onBindViewHolder(item: StatData, viewHolder: ViewHolder, payloads: List<Any>) {
+    override fun onBindViewHolder(item: StatPoints, viewHolder: ViewHolder, payloads: List<Any>) {
         viewHolder.statText.text = item.text
         viewHolder.statPoints.text = item.points
     }
@@ -50,10 +54,10 @@ private class StatElemDelegate :
 }
 
 private class DescriptionElemDelegate :
-    AbsListItemAdapterDelegate<StatDescr, StatList, DescriptionElemDelegate.ViewHolder>() {
+    AbsListItemAdapterDelegate<StatHeader, StatList, DescriptionElemDelegate.ViewHolder>() {
 
     override fun isForViewType(item: StatList, items: List<StatList>, position: Int): Boolean {
-        return item is StatDescr
+        return item is StatHeader
     }
 
     override fun onCreateViewHolder(parent: ViewGroup): ViewHolder {
@@ -66,7 +70,7 @@ private class DescriptionElemDelegate :
         )
     }
 
-    override fun onBindViewHolder(item: StatDescr, viewHolder: ViewHolder, payloads: List<Any>) {
+    override fun onBindViewHolder(item: StatHeader, viewHolder: ViewHolder, payloads: List<Any>) {
         viewHolder.descText.text = item.text
     }
 

@@ -3,8 +3,8 @@ package com.example.final_project.API
 import android.util.Log
 import com.example.final_project.BuildConfig
 import com.example.final_project.database.players.PlayerData
-import com.example.final_project.database.players.SeasonStatsData
-import com.example.final_project.database.players.SeasonsData
+import com.example.final_project.database.seasons.SeasonStatsData
+import com.example.final_project.database.seasons.SeasonsData
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Call
@@ -13,7 +13,7 @@ import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
-public fun getPlayer(name: String, callback: (PlayerData) -> Unit) {
+fun getPlayer(name: String, callback: (PlayerData) -> Unit) {
     val interceptor = HttpLoggingInterceptor()
     interceptor.level =
         if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BODY else HttpLoggingInterceptor.Level.NONE
@@ -81,7 +81,7 @@ fun getSeasons(platform: String, callback: (SeasonsData) -> Unit) {
 
 
         override fun onResponse(call: Call<SeasonsData>, response: Response<SeasonsData>) {
-            Log.d("OK", "Сезоны получены!")
+            Log.d("OK", "Сезоны получены из Интернета!")
             //здесь нужно куда-то сохранять список сезонов
             val data = response.body()
             if (data != null) callback.invoke(data)
