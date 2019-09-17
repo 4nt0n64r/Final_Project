@@ -1,4 +1,4 @@
-package com.example.final_project.Fragments
+package com.example.pubgstats.Fragments
 
 import android.os.Bundle
 import android.util.Log
@@ -10,18 +10,18 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.room.Room
-import com.example.final_project.*
-import com.example.final_project.API.getSeasonStats
-import com.example.final_project.API.getSeasons
-import com.example.final_project.MainActivity.Companion.ID
-import com.example.final_project.MainActivity.Companion.LIST_OF_PLAYERS
-import com.example.final_project.MainActivity.Companion.NAME
-import com.example.final_project.adapters.MySpinnerAdapter
-import com.example.final_project.adapters.StatisticsAdapter
-import com.example.final_project.database.DataStorage
-import com.example.final_project.database.seasons.DownloadDate
-import com.example.final_project.database.seasons.SeasonDB
-import com.example.final_project.database.seasons.SeasonUI
+import com.example.pubgstats.*
+import com.example.pubgstats.API.getSeasonStats
+import com.example.pubgstats.API.getSeasons
+import com.example.pubgstats.MainActivity.Companion.ID
+import com.example.pubgstats.MainActivity.Companion.LIST_OF_PLAYERS
+import com.example.pubgstats.MainActivity.Companion.NAME
+import com.example.pubgstats.adapters.MySpinnerAdapter
+import com.example.pubgstats.adapters.StatisticsAdapter
+import com.example.pubgstats.database.DataStorage
+import com.example.pubgstats.database.seasons.DownloadDate
+import com.example.pubgstats.database.seasons.SeasonDB
+import com.example.pubgstats.database.seasons.SeasonUI
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.statfragment_layout.*
@@ -488,6 +488,11 @@ class StatFragment : Fragment() {
         navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener)
     }
 
+    override fun onDestroyView() {
+        mainJob.cancel()
+        super.onDestroyView()
+    }
+
     private fun cacheSeasons() = CoroutineScope(Dispatchers.Main + mainJob).launch {
         saveSeasonsDownloadDate()
 
@@ -605,8 +610,8 @@ class StatFragment : Fragment() {
     }
 
     private fun initRecyclerAdapter() {
-        stat_data_rv.layoutManager = LinearLayoutManager(activity!!.applicationContext)
-        stat_data_rv.adapter = rvAdapter
+
+        rvAdapter = StatisticsAdapter()
         val defaultData = listOf(
             StatHeader(getString(R.string.stat_txt_rank)),
             StatPoints(
@@ -727,6 +732,9 @@ class StatFragment : Fragment() {
             )
         )
         rvAdapter.setData(defaultData)
+        stat_data_rv.layoutManager = LinearLayoutManager(activity!!.applicationContext)
+        stat_data_rv.adapter = rvAdapter
+
     }
 
     private fun createDatabase() {

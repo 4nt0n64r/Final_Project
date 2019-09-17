@@ -1,14 +1,14 @@
-package com.example.final_project.adapters
+package com.example.pubgstats.adapters
 
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import com.example.final_project.R
-import com.example.final_project.StatPoints
-import com.example.final_project.StatHeader
-import com.example.final_project.StatList
+import com.example.pubgstats.R
+import com.example.pubgstats.StatPoints
+import com.example.pubgstats.StatHeader
+import com.example.pubgstats.StatList
 import com.hannesdorfmann.adapterdelegates4.AbsListItemAdapterDelegate
 import com.hannesdorfmann.adapterdelegates4.ListDelegationAdapter
 

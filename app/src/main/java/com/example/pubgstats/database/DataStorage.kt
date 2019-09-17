@@ -1,12 +1,12 @@
-package com.example.final_project.database
+package com.example.pubgstats.database
 
 import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import com.example.final_project.database.players.SimplePlayer
-import com.example.final_project.database.seasons.DownloadDate
-import com.example.final_project.database.seasons.SeasonDB
+import com.example.pubgstats.database.players.SimplePlayer
+import com.example.pubgstats.database.seasons.DownloadDate
+import com.example.pubgstats.database.seasons.SeasonDB
 
 
 @Database(
@@ -14,6 +14,7 @@ import com.example.final_project.database.seasons.SeasonDB
     version = 1
 )
 abstract class DataStorage : RoomDatabase() {
+
     abstract fun daoFunctions(): DAOFunctions
 
     fun createDatabase(context: Context) {

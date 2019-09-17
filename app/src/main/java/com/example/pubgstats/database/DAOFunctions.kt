@@ -1,12 +1,12 @@
-package com.example.final_project.database
+package com.example.pubgstats.database
 
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import com.example.final_project.database.players.SimplePlayer
-import com.example.final_project.database.seasons.DownloadDate
-import com.example.final_project.database.seasons.SeasonDB
+import com.example.pubgstats.database.players.SimplePlayer
+import com.example.pubgstats.database.seasons.DownloadDate
+import com.example.pubgstats.database.seasons.SeasonDB
 
 @Dao
 interface DAOFunctions {

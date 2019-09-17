@@ -1,4 +1,4 @@
-package com.example.final_project.database.players
+package com.example.pubgstats.database.players
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
@@ -10,17 +10,17 @@ data class SimplePlayer(
     @PrimaryKey
     @ColumnInfo(name = "id_field") val id: String
 ){
-    private fun sPtoSPUI(sp: SimplePlayer): SimplePlayerUI {
-        return SimplePlayerUI(sp.name, sp.id, false)
+    fun toSPUI(): SimplePlayerUI {
+        return SimplePlayerUI(this.name, this.id, false)
     }
 }
 
 data class SimplePlayerUI(
     val name: String,
     val id: String,
-    val isSelected: Boolean = false
+    var isSelected: Boolean = false
 ){
-    private fun sPUItoSP(sp: SimplePlayerUI): SimplePlayer {
-        return SimplePlayer(sp.name, sp.id)
+    fun toSP(): SimplePlayer {
+        return SimplePlayer(this.name, this.id)
     }
 }

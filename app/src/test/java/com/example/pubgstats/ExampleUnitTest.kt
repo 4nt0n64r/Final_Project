@@ -1,4 +1,4 @@
-package com.example.final_project
+package com.example.pubgstats
 
 import org.junit.Test
 

@@ -1,10 +1,11 @@
-package com.example.final_project.API
+package com.example.pubgstats.API
 
 import android.util.Log
-import com.example.final_project.BuildConfig
-import com.example.final_project.database.players.PlayerData
-import com.example.final_project.database.seasons.SeasonStatsData
-import com.example.final_project.database.seasons.SeasonsData
+import com.example.pubgstats.BuildConfig
+import com.example.pubgstats.database.players.APIAnswer
+import com.example.pubgstats.database.players.PlayerData
+import com.example.pubgstats.database.seasons.SeasonStatsData
+import com.example.pubgstats.database.seasons.SeasonsData
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Call
@@ -13,7 +14,9 @@ import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
-fun getPlayer(name: String, callback: (PlayerData) -> Unit) {
+fun getPlayer(name: String, callback: (APIAnswer) -> Unit) {
+
+    //каждый раз мы создаем ретрофит заново ++++++++++++++++++++++++++++++++//
     val interceptor = HttpLoggingInterceptor()
     interceptor.level =
         if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BODY else HttpLoggingInterceptor.Level.NONE
@@ -31,27 +34,35 @@ fun getPlayer(name: String, callback: (PlayerData) -> Unit) {
 
 
     val apIservice = retrofit.create(APIservice::class.java)
+    //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 
     val call = apIservice.getPlayer(name)
 
-    call.enqueue(object : Callback<PlayerData> {
+    call.enqueue(object : Callback<APIAnswer> {
 
-        override fun onFailure(call: Call<PlayerData>, t: Throwable) {
+        override fun onFailure(call: Call<APIAnswer>, t: Throwable) {
             Log.d("FAIL", "FAIL что-то не так!")
 
         }
 
-        override fun onResponse(call: Call<PlayerData>, response: Response<PlayerData>) {
-            Log.d("OK", "Игрок получен!")
+        override fun onResponse(call: Call<APIAnswer>, response: Response<APIAnswer>) {
+
             //TODO( вот тут мы можем получить: {"errors":[{"title":"Not Found","detail":"No Players Found Matching Criteria"}]})
             // Это надо обработать как "ИГРОК НЕ НАЙДЕН"
             val data = response.body()
             if (data != null) callback.invoke(data)
+            if (data is APIAnswer){
+                Log.d("FAIL", "Ошибка!")
+            }else if (data is PlayerData){
+                Log.d("OK", "Игрок получен!")
+            }
         }
     })
 }
 
 fun getSeasons(platform: String, callback: (SeasonsData) -> Unit) {
+
+    //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
     val interceptor = HttpLoggingInterceptor()
     interceptor.level =
         if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BODY else HttpLoggingInterceptor.Level.NONE
@@ -69,6 +80,7 @@ fun getSeasons(platform: String, callback: (SeasonsData) -> Unit) {
 
 
     val apIservice = retrofit.create(APIservice::class.java)
+    //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 
     val call = apIservice.getSeasons()
 
@@ -82,7 +94,6 @@ fun getSeasons(platform: String, callback: (SeasonsData) -> Unit) {
 
         override fun onResponse(call: Call<SeasonsData>, response: Response<SeasonsData>) {
             Log.d("OK", "Сезоны получены из Интернета!")
-            //здесь нужно куда-то сохранять список сезонов
             val data = response.body()
             if (data != null) callback.invoke(data)
         }
@@ -90,6 +101,8 @@ fun getSeasons(platform: String, callback: (SeasonsData) -> Unit) {
 }
 
 fun getSeasonStats(playerId: String, seasonId: String, callback: (SeasonStatsData) -> Unit) {
+
+    //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
     val interceptor = HttpLoggingInterceptor()
     interceptor.level =
         if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BODY else HttpLoggingInterceptor.Level.NONE
@@ -107,6 +120,7 @@ fun getSeasonStats(playerId: String, seasonId: String, callback: (SeasonStatsDat
 
 
     val apIservice = retrofit.create(APIservice::class.java)
+    //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 
     val call = apIservice.getSeasonStats(seasonId)
 

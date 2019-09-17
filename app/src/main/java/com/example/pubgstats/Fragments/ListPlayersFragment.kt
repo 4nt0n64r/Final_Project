@@ -1,4 +1,4 @@
-package com.example.final_project.Fragments
+package com.example.pubgstats.Fragments
 
 import android.annotation.SuppressLint
 import android.os.Bundle
@@ -13,16 +13,17 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.room.Room
-import com.example.final_project.MainActivity
-import com.example.final_project.MainActivity.Companion.ADD_PLAYER
-import com.example.final_project.MainActivity.Companion.ID
-import com.example.final_project.MainActivity.Companion.NAME
-import com.example.final_project.MainActivity.Companion.PLAYER_ADDER
-import com.example.final_project.adapters.PlayersAdapter
-import com.example.final_project.R
-import com.example.final_project.RecyclerItemClickListener
-import com.example.final_project.database.DataStorage
-import com.example.final_project.database.players.SimplePlayer
+import com.example.pubgstats.MainActivity
+import com.example.pubgstats.MainActivity.Companion.ADD_PLAYER
+import com.example.pubgstats.MainActivity.Companion.ID
+import com.example.pubgstats.MainActivity.Companion.NAME
+import com.example.pubgstats.MainActivity.Companion.PLAYER_ADDER
+import com.example.pubgstats.R
+import com.example.pubgstats.RecyclerItemClickListener
+import com.example.pubgstats.adapters.PlayersAdapter
+import com.example.pubgstats.database.DataStorage
+import com.example.pubgstats.database.players.SimplePlayer
+import com.example.pubgstats.database.players.SimplePlayerUI
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.listplayerfragment_layout.*
 import kotlinx.android.synthetic.main.name_player_item_layout.view.*
@@ -31,6 +32,7 @@ import kotlinx.coroutines.*
 
 class ListPlayersFragment : Fragment() {
     var players = mutableListOf<SimplePlayer>()
+    var playersUI = mutableListOf<SimplePlayerUI>()
 
     private var name = ""
     private var id = ""
@@ -67,37 +69,41 @@ class ListPlayersFragment : Fragment() {
             getPlayersFromDatabase()
         }
 
-        log("$players")
-
         my_recycler_view.addOnItemTouchListener(
             RecyclerItemClickListener(
                 this@ListPlayersFragment.activity!!,
                 my_recycler_view,
                 object : RecyclerItemClickListener.OnItemClickListener {
                     override fun onItemClick(view: View, position: Int) {
+
                         val mainActivity = this@ListPlayersFragment.activity as MainActivity
-                        //получить игрока из базы по нику
-                        //передать его данные через бандл
-                        val touchedPlayer = CoroutineScope(Dispatchers.Main + mainJob).async{
-                            withContext(Dispatchers.IO) {db.daoFunctions().getPlayerByName(view.item_name.text.toString())}
+
+                        val touchedPlayer = CoroutineScope(Dispatchers.Main + mainJob).async {
+                            withContext(Dispatchers.IO) {
+                                db.daoFunctions().getPlayerByName(view!!.item_name.text.toString())
+                            }
                         }
-                        CoroutineScope(Dispatchers.Main+mainJob).launch {
-                            log(touchedPlayer.await().toString())
-                            mainActivity.showStatistics(touchedPlayer.await().name,touchedPlayer.await().id)
+
+                        CoroutineScope(Dispatchers.Main + mainJob).launch {
+                            mainActivity.showStatistics(
+                                touchedPlayer.await().name,
+                                touchedPlayer.await().id
+                            )
                         }
+
                     }
 
                     @SuppressLint("RestrictedApi")//че он ругается?
                     override fun onLongItemClick(view: View?, position: Int) {
-                        view!!.item_background.setCardBackgroundColor(
-                            ContextCompat.getColor(
-                                context!!,
-                                R.color.colorAccent
-                            )
-                        )
-                        view.item_name.setTextColor(ContextCompat.getColor(context!!, R.color.colorPrimaryDark))
-                        fab_delPlayer.visibility = VISIBLE
-                        showSnackbar("Длинное нажатие отработало нормально")
+
+                        playersUI[position].isSelected = !playersUI[position].isSelected
+                        adapter.notifyDataSetChanged()
+
+                        if (playersUI.find { it.isSelected == true } != null) {
+                            fab_delPlayer.visibility = VISIBLE
+                        } else {
+                            fab_delPlayer.visibility = INVISIBLE
+                        }
                     }
                 })
         )
@@ -108,7 +114,12 @@ class ListPlayersFragment : Fragment() {
         }
 
         fab_delPlayer.setOnClickListener {
-            showSnackbar("Удаление игрока пока не реализовано!")
+
+            deletePlayersAndUpdateList(playersUI.filter { it.isSelected == true } as MutableList<SimplePlayerUI>)
+
+            adapter.notifyDataSetChanged()
+
+            fab_delPlayer.visibility = INVISIBLE
         }
     }
 
@@ -119,7 +130,11 @@ class ListPlayersFragment : Fragment() {
 
     private fun initAdapter() {
         my_recycler_view.layoutManager = LinearLayoutManager(activity!!.applicationContext)
-        adapter = PlayersAdapter(players)
+
+        playersUI.clear()
+        playersUI = arrToSPUI(players)
+
+        adapter = PlayersAdapter(playersUI)
         my_recycler_view.adapter = adapter
     }
 
@@ -130,18 +145,21 @@ class ListPlayersFragment : Fragment() {
 
     private fun getPlayersFromDatabase() = CoroutineScope(Dispatchers.Main + mainJob).launch {
         val playersFromDb = withContext(Dispatchers.IO) { db.daoFunctions().getPlayersFromDB() }
-        log("$playersFromDb")
         updateListOfPlayers(playersFromDb)
     }
 
-    private fun deletePlayerAndUpdateList(name: String, id: String) =
+    private fun deletePlayersAndUpdateList(players: MutableList<SimplePlayerUI>) =
         CoroutineScope(Dispatchers.Main + mainJob).launch {
-            withContext(Dispatchers.IO) { deletePlayerFromDB(
-                SimplePlayer(
-                    name,
-                    id
-                )
-            ) }
+            withContext(Dispatchers.IO) {
+                for (player in players) {
+                    deletePlayerFromDB(
+                        SimplePlayer(
+                            player.name,
+                            player.id
+                        )
+                    )
+                }
+            }
 
             players.clear()
 
@@ -152,21 +170,24 @@ class ListPlayersFragment : Fragment() {
         }
 
     //выполняет кеширование игрока в базу и обновление списка на экране
-    private fun cachePlayerAndUpdateList(name: String, id: String) = CoroutineScope(Dispatchers.Main + mainJob).launch {
-        withContext(Dispatchers.IO) { writePlayerToDB(
-            SimplePlayer(
-                name,
-                id
-            )
-        ) }
+    private fun cachePlayerAndUpdateList(name: String, id: String) =
+        CoroutineScope(Dispatchers.Main + mainJob).launch {
+            withContext(Dispatchers.IO) {
+                writePlayerToDB(
+                    SimplePlayer(
+                        name,
+                        id
+                    )
+                )
+            }
 
-        players.clear()
+            players.clear()
 
-        val playersFromDb =
-            withContext(Dispatchers.IO) { db.daoFunctions().getPlayersFromDB() }
+            val playersFromDb =
+                withContext(Dispatchers.IO) { db.daoFunctions().getPlayersFromDB() }
 
-        updateListOfPlayers(playersFromDb)
-    }
+            updateListOfPlayers(playersFromDb)
+        }
 
     private fun deletePlayerFromDB(player: SimplePlayer) {
         db.daoFunctions().deletePlayer(player.name, player.id)
@@ -181,10 +202,13 @@ class ListPlayersFragment : Fragment() {
 
     //принимает список игроков из базы, обновляет список в RV и показывает заглушку если список пуст
     fun updateListOfPlayers(playersFromDb: List<SimplePlayer>) {
-        players.addAll(playersFromDb)
-        adapter.setData(players)
 
-        if (players.isEmpty()) {
+        playersUI.clear()
+        playersUI = arrToSPUI(playersFromDb as MutableList<SimplePlayer>)
+
+        adapter.setData(playersUI)
+
+        if (playersFromDb.isEmpty()) {
             layout_error_list.visibility = VISIBLE
         } else {
             layout_error_list.visibility = INVISIBLE
@@ -197,6 +221,22 @@ class ListPlayersFragment : Fragment() {
         val tv = sv.findViewById<TextView>(R.id.snackbar_text)
         tv.setTextColor(ContextCompat.getColor(context!!, R.color.colorAccent))
         snack.show()
+    }
+
+    fun arrToSPUI(players: MutableList<SimplePlayer>): MutableList<SimplePlayerUI> {
+        var arr = mutableListOf<SimplePlayerUI>()
+        for (player in players) {
+            arr.add(player.toSPUI())
+        }
+        return arr
+    }
+
+    fun arrToSP(players: MutableList<SimplePlayerUI>): MutableList<SimplePlayer> {
+        var arr = mutableListOf<SimplePlayer>()
+        for (player in players) {
+            arr.add(player.toSP())
+        }
+        return arr
     }
 }
 

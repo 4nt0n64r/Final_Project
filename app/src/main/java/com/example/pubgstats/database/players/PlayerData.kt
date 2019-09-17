@@ -1,7 +1,9 @@
-package com.example.final_project.database.players
+package com.example.pubgstats.database.players
 
 
 import com.google.gson.annotations.SerializedName
+
+interface APIAnswer
 
 
 data class PlayerData(
@@ -12,7 +14,7 @@ data class PlayerData(
     //id нужен уже для всех остальных запросов
     val player: List<Player>
 
-) {
+) :APIAnswer{
 
     fun getId(): String {
         return player[0].id
@@ -32,3 +34,17 @@ data class Player(
 data class PlayerAttributes(
     val name: String
 )
+
+//TODO( вот тут мы можем получить: {"errors":[{"title":"Not Found","detail":"No Players Found Matching Criteria"}]})
+//
+//data class ErrorsData(
+//    @SerializedName("errors")
+//val error: List<ErrorInfo>
+//) :APIAnswer
+//
+//data class ErrorInfo(
+//    @SerializedName("title")
+//    val title: String,
+//    @SerializedName("detail")
+//    val detail: String
+//)

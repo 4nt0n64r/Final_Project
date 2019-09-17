@@ -1,4 +1,4 @@
-package com.example.final_project
+package com.example.pubgstats
 
 import androidx.test.InstrumentationRegistry
 import androidx.test.runner.AndroidJUnit4

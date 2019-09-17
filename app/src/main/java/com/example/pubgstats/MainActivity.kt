@@ -1,13 +1,11 @@
-package com.example.final_project
+package com.example.pubgstats
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import androidx.room.Room
-import com.example.final_project.Fragments.AddPlayerFragment
-import com.example.final_project.Fragments.ComparisonFragment
-import com.example.final_project.Fragments.ListPlayersFragment
-import com.example.final_project.Fragments.StatFragment
-import com.example.final_project.database.DataStorage
+import com.example.pubgstats.Fragments.AddPlayerFragment
+import com.example.pubgstats.Fragments.ComparisonFragment
+import com.example.pubgstats.Fragments.ListPlayersFragment
+import com.example.pubgstats.Fragments.StatFragment
 
 
 class MainActivity : AppCompatActivity() {

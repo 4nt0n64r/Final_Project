@@ -1,4 +1,4 @@
-package com.example.final_project.database.seasons
+package com.example.pubgstats.database.seasons
 
 import com.google.gson.annotations.SerializedName
 
